@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				salon: {
+					50: '#fcf9f9',
+					100: '#f5eff0',
+					200: '#eadfe1',
+					300: '#dbc6c8',
+					400: '#c4a1a5',
+					500: '#b48287',
+					600: '#a36a70',
+					700: '#875860',
+					800: '#704c52',
+					900: '#5f4247',
+					950: '#33242a',
 				}
 			},
 			borderRadius: {
@@ -70,26 +84,47 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'fade-in': {
+					from: { opacity: '0' },
+					to: { opacity: '1' }
+				},
+				'fade-down': {
+					from: { opacity: '0', transform: 'translateY(-10px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-up': {
+					from: { opacity: '0', transform: 'translateY(20px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-in-right': {
+					from: { transform: 'translateX(100%)' },
+					to: { transform: 'translateX(0)' }
+				},
+				'slide-in-left': {
+					from: { transform: 'translateX(-100%)' },
+					to: { transform: 'translateX(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.6s ease-out',
+				'fade-down': 'fade-down 0.6s ease-out',
+				'slide-up': 'slide-up 0.6s ease-out',
+				'slide-in-right': 'slide-in-right 0.4s ease-out',
+				'slide-in-left': 'slide-in-left 0.4s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				display: ['Playfair Display', 'serif']
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
