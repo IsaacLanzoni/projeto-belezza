@@ -116,7 +116,7 @@ const Professionals: React.FC = () => {
     if (selectedProfessional) {
       sessionStorage.setItem('selectedProfessional', JSON.stringify(selectedProfessional));
       toast.success(`${selectedProfessional.name} selecionado!`);
-      navigate('/booking');
+      navigate('/schedule');
     }
   };
 
