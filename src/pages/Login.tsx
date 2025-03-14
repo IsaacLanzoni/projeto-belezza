@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -17,10 +16,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, register, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -29,28 +29,15 @@ const Login: React.FC = () => {
   const [registerPassword, setRegisterPassword] = useState('');
   const [activeTab, setActiveTab] = useState('login');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Login realizado com sucesso!');
-      navigate('/services');
-    }, 1500);
+    await login(loginEmail, loginPassword);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate registration process
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Cadastro realizado com sucesso!');
-      setActiveTab('login');
-    }, 1500);
+    await register(registerName, registerEmail, registerPassword);
+    setActiveTab('login');
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -59,7 +46,6 @@ const Login: React.FC = () => {
     <Layout withFooter={false}>
       <div className="min-h-screen flex items-center justify-center p-4 bg-secondary/30">
         <div className="grid md:grid-cols-2 gap-0 w-full max-w-5xl overflow-hidden rounded-2xl shadow-xl">
-          {/* Left side - Form */}
           <motion.div 
             className="bg-white p-8 md:p-12"
             initial={{ opacity: 0, x: -20 }}
@@ -216,7 +202,6 @@ const Login: React.FC = () => {
             </Tabs>
           </motion.div>
 
-          {/* Right side - Image */}
           <motion.div 
             className="hidden md:block relative overflow-hidden"
             initial={{ opacity: 0, x: 20 }}

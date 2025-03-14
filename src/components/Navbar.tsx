@@ -1,13 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Calendar, UserCircle, Home, Scissors, Users, Clock } from 'lucide-react';
+import { Menu, X, Calendar, UserCircle, Home, Scissors, Users, Clock, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user, isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -66,11 +69,22 @@ const Navbar: React.FC = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">
-                <UserCircle className="h-4 w-4 mr-2" /> Entrar
-              </Link>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <div className="text-sm text-muted-foreground mr-2">
+                  Olá, {user?.name}
+                </div>
+                <Button variant="outline" size="sm" onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-2" /> Sair
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/login">
+                  <UserCircle className="h-4 w-4 mr-2" /> Entrar
+                </Link>
+              </Button>
+            )}
             <Button size="sm" asChild>
               <Link to="/services">
                 <Calendar className="h-4 w-4 mr-2" /> Agendar
@@ -113,11 +127,22 @@ const Navbar: React.FC = () => {
                   </Link>
                 ))}
                 <div className="pt-4 flex flex-col space-y-3">
-                  <Button variant="outline" size="sm" className="justify-start" asChild>
-                    <Link to="/login">
-                      <UserCircle className="h-4 w-4 mr-2" /> Entrar
-                    </Link>
-                  </Button>
+                  {isAuthenticated ? (
+                    <>
+                      <div className="text-sm text-muted-foreground">
+                        Olá, {user?.name}
+                      </div>
+                      <Button variant="outline" size="sm" className="justify-start" onClick={logout}>
+                        <LogOut className="h-4 w-4 mr-2" /> Sair
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" className="justify-start" asChild>
+                      <Link to="/login">
+                        <UserCircle className="h-4 w-4 mr-2" /> Entrar
+                      </Link>
+                    </Button>
+                  )}
                   <Button size="sm" className="justify-start" asChild>
                     <Link to="/services">
                       <Calendar className="h-4 w-4 mr-2" /> Agendar
