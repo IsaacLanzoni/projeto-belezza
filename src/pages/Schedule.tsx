@@ -1,41 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
-import TimeSlot from '@/components/TimeSlot';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, ArrowLeft, ArrowRight, Clock, CheckCircle } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 
-// Mock data for available time slots
-const generateTimeSlots = (selectedDate: Date) => {
-  // Create availability based on day of week (weekend has fewer slots)
-  const isWeekend = [0, 6].includes(selectedDate.getDay());
-  const startHour = 9;
-  const endHour = isWeekend ? 16 : 19;
-  const interval = 30; // minutes
-  
-  const slots = [];
-  for (let hour = startHour; hour < endHour; hour++) {
-    for (let min = 0; min < 60; min += interval) {
-      // Randomly make some slots unavailable (for demo purposes)
-      const available = Math.random() > 0.3;
-      
-      slots.push({
-        time: `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`,
-        available
-      });
-    }
-  }
-  
-  return slots;
-};
+// Import new components
+import DateSelector from '@/components/schedule/DateSelector';
+import TimeSlotsGrid from '@/components/schedule/TimeSlotsGrid';
+import AppointmentSummary from '@/components/schedule/AppointmentSummary';
+
+// Import utilities
+import { generateTimeSlots, saveAppointment } from '@/utils/scheduleUtils';
 
 const SchedulePage: React.FC = () => {
   const navigate = useNavigate();
@@ -84,23 +64,9 @@ const SchedulePage: React.FC = () => {
   const handleSchedule = () => {
     if (!date || !selectedTimeSlot || !service || !professional) return;
     
-    // Create appointment object
-    const appointment = {
-      id: `appt-${Date.now()}`,
-      service,
-      professional,
-      date: format(date, 'yyyy-MM-dd'),
-      time: selectedTimeSlot,
-      status: 'confirmed',
-      createdAt: new Date().toISOString()
-    };
+    // Save appointment and show success toast
+    saveAppointment(date, selectedTimeSlot, service, professional);
     
-    // Save to session storage (in a real app, this would go to a database)
-    const existingAppointments = JSON.parse(sessionStorage.getItem('appointments') || '[]');
-    const updatedAppointments = [...existingAppointments, appointment];
-    sessionStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    
-    // Show success toast
     toast({
       title: "Agendamento realizado!",
       description: "Seu horário foi agendado com sucesso.",
@@ -163,92 +129,24 @@ const SchedulePage: React.FC = () => {
               <CardContent>
                 {!confirmStep ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="font-medium mb-3 flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" /> 
-                        Selecione uma data
-                      </h3>
-                      
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        locale={ptBR}
-                        disabled={(date) => {
-                          // Can't select days in the past or more than 30 days in the future
-                          const now = new Date();
-                          now.setHours(0, 0, 0, 0);
-                          const thirtyDaysFromNow = new Date();
-                          thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                          return date < now || date > thirtyDaysFromNow;
-                        }}
-                        className="rounded-md border pointer-events-auto"
-                      />
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium mb-3 flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {date ? (
-                          <>Horários disponíveis em {format(date, "dd 'de' MMMM", { locale: ptBR })}</>
-                        ) : (
-                          <>Selecione uma data para ver horários</>
-                        )}
-                      </h3>
-                      
-                      {date ? (
-                        <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto p-1">
-                          {timeSlots.map((slot, index) => (
-                            <TimeSlot
-                              key={index}
-                              time={slot.time}
-                              available={slot.available}
-                              selected={selectedTimeSlot === slot.time}
-                              onClick={() => slot.available && handleTimeSlotSelect(slot.time)}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="h-32 flex items-center justify-center text-muted-foreground">
-                          Selecione uma data para ver os horários disponíveis
-                        </div>
-                      )}
-                    </div>
+                    <DateSelector date={date} setDate={setDate} />
+                    <TimeSlotsGrid 
+                      date={date}
+                      timeSlots={timeSlots}
+                      selectedTimeSlot={selectedTimeSlot}
+                      onTimeSlotSelect={handleTimeSlotSelect}
+                    />
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="border rounded-lg p-4 bg-muted/30">
-                      <h3 className="font-medium mb-3">Resumo do Agendamento</h3>
-                      
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Serviço:</span>
-                          <span className="font-medium">{service.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Profissional:</span>
-                          <span className="font-medium">{professional.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Data:</span>
-                          <span className="font-medium">
-                            {format(date!, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Horário:</span>
-                          <span className="font-medium">{selectedTimeSlot}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Duração:</span>
-                          <span className="font-medium">{service.duration} minutos</span>
-                        </div>
-                        <div className="flex justify-between border-t pt-2 mt-2">
-                          <span className="font-medium">Valor Total:</span>
-                          <span className="font-medium text-primary">R$ {service.price.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
+                    {date && selectedTimeSlot && (
+                      <AppointmentSummary
+                        service={service}
+                        professional={professional}
+                        date={date}
+                        selectedTimeSlot={selectedTimeSlot}
+                      />
+                    )}
                   </div>
                 )}
               </CardContent>
