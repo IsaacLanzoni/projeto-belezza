@@ -1,158 +1,135 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, CalendarClock } from 'lucide-react';
+import { Menu, X, Calendar, UserCircle, Home, Scissors, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { useMobile } from '@/hooks/use-mobile';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
+  const isMobile = useMobile();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Close mobile menu when changing routes
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const navLinks = [
-    { title: 'Home', path: '/' },
-    { title: 'Serviços', path: '/services' },
-    { title: 'Profissionais', path: '/professionals' },
-    { title: 'Agendamentos', path: '/appointments' },
+    { path: '/', label: 'Início', icon: <Home className="h-4 w-4 mr-2" /> },
+    { path: '/services', label: 'Serviços', icon: <Scissors className="h-4 w-4 mr-2" /> },
+    { path: '/professionals', label: 'Profissionais', icon: <Users className="h-4 w-4 mr-2" /> },
+    { path: '/appointments', label: 'Meus Agendamentos', icon: <Calendar className="h-4 w-4 mr-2" /> },
   ];
 
-  const menuVariants = {
-    open: { opacity: 1, x: 0 },
-    closed: { opacity: 0, x: "100%" }
+  const activeLink = (path: string) => {
+    return location.pathname === path ? 'text-primary' : 'text-muted-foreground hover:text-foreground';
   };
-
-  const linkVariants = {
-    open: {
-      opacity: 1,
-      y: 0,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-    },
-    closed: { opacity: 0, y: 20 }
-  };
-
-  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header 
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
+    <header
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled || menuOpen ? 'bg-background/80 backdrop-blur-md border-b' : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
-          <h1 className="text-2xl font-display font-bold text-salon-800">
-            Belezza
-          </h1>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`relative font-medium transition-colors ${
-                isActive(link.path) 
-                ? 'text-primary font-semibold' 
-                : 'text-foreground/80 hover:text-primary'
-              } link-underline`}
-              onClick={closeMenu}
-            >
-              {link.title}
-              {isActive(link.path) && (
-                <motion.span
-                  layoutId="navIndicator"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden md:flex items-center space-x-4">
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="font-medium gap-1 hover-lift">
-              <User size={16} /> Entrar
-            </Button>
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="font-bold text-lg md:text-xl">Beauty<span className="text-primary">App</span></span>
           </Link>
-          <Link to="/services">
-            <Button size="sm" className="font-medium gap-1 hover-lift">
-              <CalendarClock size={16} /> Agendar
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex items-center text-sm font-medium transition-colors ${activeLink(
+                  link.path
+                )}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/login">
+                <UserCircle className="h-4 w-4 mr-2" /> Entrar
+              </Link>
             </Button>
-          </Link>
+            <Button size="sm" asChild>
+              <Link to="/services">
+                <Calendar className="h-4 w-4 mr-2" /> Agendar
+              </Link>
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex md:hidden"
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X /> : <Menu />}
+          </button>
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden text-primary rounded-full p-2 focus:outline-none"
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
 
       {/* Mobile Menu */}
-      <motion.div
-        initial="closed"
-        animate={isMenuOpen ? "open" : "closed"}
-        variants={menuVariants}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="md:hidden fixed inset-0 top-16 bg-white/95 backdrop-blur-md z-40 flex flex-col p-6"
-      >
-        <motion.nav
-          variants={linkVariants}
-          className="flex flex-col space-y-6 pt-6"
-        >
-          {navLinks.map((link) => (
-            <motion.div key={link.path} variants={linkVariants}>
-              <Link
-                to={link.path}
-                className={`text-xl font-medium block ${
-                  isActive(link.path) 
-                  ? 'text-primary font-semibold' 
-                  : 'text-foreground/80'
-                }`}
-                onClick={closeMenu}
-              >
-                {link.title}
-              </Link>
-            </motion.div>
-          ))}
-          <motion.div variants={linkVariants} className="pt-6 flex flex-col space-y-4">
-            <Link to="/login" onClick={closeMenu}>
-              <Button variant="outline" className="w-full justify-start text-left font-medium">
-                <User size={18} className="mr-2" /> Entrar
-              </Button>
-            </Link>
-            <Link to="/services" onClick={closeMenu}>
-              <Button className="w-full justify-start text-left font-medium">
-                <CalendarClock size={18} className="mr-2" /> Agendar Agora
-              </Button>
-            </Link>
+      <AnimatePresence>
+        {menuOpen && isMobile && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-background border-b"
+          >
+            <div className="container mx-auto px-4 py-4">
+              <nav className="flex flex-col space-y-4">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`flex items-center py-2 text-sm font-medium transition-colors ${activeLink(
+                      link.path
+                    )}`}
+                  >
+                    {link.icon}
+                    {link.label}
+                  </Link>
+                ))}
+                <div className="pt-4 flex flex-col space-y-3">
+                  <Button variant="outline" size="sm" className="justify-start" asChild>
+                    <Link to="/login">
+                      <UserCircle className="h-4 w-4 mr-2" /> Entrar
+                    </Link>
+                  </Button>
+                  <Button size="sm" className="justify-start" asChild>
+                    <Link to="/services">
+                      <Calendar className="h-4 w-4 mr-2" /> Agendar
+                    </Link>
+                  </Button>
+                </div>
+              </nav>
+            </div>
           </motion.div>
-        </motion.nav>
-      </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
