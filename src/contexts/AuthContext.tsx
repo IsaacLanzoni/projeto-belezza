@@ -34,6 +34,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
+  // Função para simular verificação de email existente
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    // Simulação de consulta ao banco de dados
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Buscar todos os usuários registrados no localStorage
+    const registeredUsers = localStorage.getItem('registeredUsers');
+    if (registeredUsers) {
+      const users = JSON.parse(registeredUsers) as { email: string }[];
+      return users.some(user => user.email.toLowerCase() === email.toLowerCase());
+    }
+    
+    return false;
+  };
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
@@ -44,16 +59,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Verificação simulada - em uma aplicação real você verificaria com backend
       if (email && password) {
-        const user = {
-          id: '1',
-          name: email.split('@')[0],
-          email
-        };
+        // Verificar se o usuário está registrado
+        const registeredUsers = localStorage.getItem('registeredUsers');
+        let userExists = false;
         
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        toast.success('Login realizado com sucesso!');
-        navigate('/services');
+        if (registeredUsers) {
+          const users = JSON.parse(registeredUsers) as Array<{email: string, name: string}>;
+          const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+          userExists = !!foundUser;
+          
+          if (foundUser) {
+            const user = {
+              id: Math.random().toString(36).substring(2),
+              name: foundUser.name,
+              email: foundUser.email
+            };
+            
+            setUser(user);
+            localStorage.setItem('user', JSON.stringify(user));
+            toast.success('Login realizado com sucesso!');
+            navigate('/services');
+            return;
+          }
+        }
+        
+        if (!userExists) {
+          toast.error('Usuário não encontrado ou senha incorreta');
+        }
       } else {
         toast.error('Credenciais inválidas');
       }
@@ -69,16 +101,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Verificar se o email já existe
+      const emailExists = await checkEmailExists(email);
+      
+      if (emailExists) {
+        toast.error('Este email já está cadastrado. Por favor, use outro email ou faça login.');
+        setIsLoading(false);
+        return;
+      }
+      
       // Simular registro de usuário
       // Em uma aplicação real, isso seria uma chamada de API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Simulação de registro - em uma aplicação real você enviaria para backend
       if (name && email && password) {
+        // Guardar usuário registrado para simulação
+        const registeredUsers = localStorage.getItem('registeredUsers');
+        const users = registeredUsers ? JSON.parse(registeredUsers) : [];
+        users.push({ name, email });
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
+        
         toast.success('Cadastro realizado com sucesso!');
         
         // Automaticamente fazer login após o registro
-        login(email, password);
+        const user = {
+          id: Math.random().toString(36).substring(2),
+          name,
+          email
+        };
+        
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+        navigate('/services');
       } else {
         toast.error('Preencha todos os campos');
       }
