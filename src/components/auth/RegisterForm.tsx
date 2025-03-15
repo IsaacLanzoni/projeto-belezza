@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const RegisterForm = () => {
   const { register, isLoading } = useAuth();
@@ -13,10 +14,65 @@ const RegisterForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+  }>({});
+
+  const validateForm = () => {
+    const newErrors: {
+      name?: string;
+      email?: string;
+      password?: string;
+    } = {};
+    let isValid = true;
+
+    // Validação de nome
+    if (!name) {
+      newErrors.name = 'O nome é obrigatório';
+      isValid = false;
+    } else if (name.length < 3) {
+      newErrors.name = 'O nome deve ter pelo menos 3 caracteres';
+      isValid = false;
+    }
+
+    // Validação de email
+    if (!email) {
+      newErrors.email = 'O email é obrigatório';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Por favor, insira um email válido';
+      isValid = false;
+    }
+
+    // Validação de senha
+    if (!password) {
+      newErrors.password = 'A senha é obrigatória';
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'A senha deve ter pelo menos 6 caracteres';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await register(name, email, password);
+    
+    if (!validateForm()) {
+      toast.error('Por favor, corrija os erros no formulário');
+      return;
+    }
+    
+    try {
+      await register(name, email, password);
+    } catch (error) {
+      console.error('Erro no cadastro:', error);
+      toast.error('Erro ao criar conta. Por favor, tente novamente.');
+    }
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -31,12 +87,15 @@ const RegisterForm = () => {
             id="name"
             type="text"
             placeholder="Seu nome completo"
-            className="pl-10"
+            className={`pl-10 ${errors.name ? 'border-red-500' : ''}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
         </div>
+        {errors.name && (
+          <p className="text-sm text-red-500 mt-1">{errors.name}</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -47,12 +106,15 @@ const RegisterForm = () => {
             id="register-email"
             type="email"
             placeholder="seu@email.com"
-            className="pl-10"
+            className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
+        {errors.email && (
+          <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -63,7 +125,7 @@ const RegisterForm = () => {
             id="register-password"
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
-            className="pl-10"
+            className={`pl-10 ${errors.password ? 'border-red-500' : ''}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -77,6 +139,9 @@ const RegisterForm = () => {
             {showPassword ? <EyeOff size={16} /> : <EyeIcon size={16} />}
           </button>
         </div>
+        {errors.password && (
+          <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+        )}
       </div>
       
       <div className="text-sm text-muted-foreground flex items-start gap-2">

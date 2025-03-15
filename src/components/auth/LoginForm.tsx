@@ -6,16 +6,61 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const LoginForm = () => {
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+
+  const validateForm = () => {
+    const newErrors: {
+      email?: string;
+      password?: string;
+    } = {};
+    let isValid = true;
+
+    // Validação de email
+    if (!email) {
+      newErrors.email = 'O email é obrigatório';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Por favor, insira um email válido';
+      isValid = false;
+    }
+
+    // Validação de senha
+    if (!password) {
+      newErrors.password = 'A senha é obrigatória';
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'A senha deve ter pelo menos 6 caracteres';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    
+    if (!validateForm()) {
+      toast.error('Por favor, corrija os erros no formulário');
+      return;
+    }
+    
+    try {
+      await login(email, password);
+    } catch (error) {
+      console.error('Erro no login:', error);
+      toast.error('Credenciais inválidas. Por favor, verifique seu email e senha.');
+    }
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -30,12 +75,15 @@ const LoginForm = () => {
             id="email"
             type="email"
             placeholder="seu@email.com"
-            className="pl-10"
+            className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
+        {errors.email && (
+          <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -51,7 +99,7 @@ const LoginForm = () => {
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
-            className="pl-10"
+            className={`pl-10 ${errors.password ? 'border-red-500' : ''}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -65,6 +113,9 @@ const LoginForm = () => {
             {showPassword ? <EyeOff size={16} /> : <EyeIcon size={16} />}
           </button>
         </div>
+        {errors.password && (
+          <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+        )}
       </div>
       
       <Button type="submit" className="w-full" disabled={isLoading}>
