@@ -44,9 +44,10 @@ const Navbar: React.FC = () => {
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled || menuOpen ? 'bg-background/80 backdrop-blur-md border-b' : 'bg-transparent'
       }`}
+      style={{ transform: 'translateY(-1px)' }}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="font-bold text-lg md:text-xl">Belezza<span className="text-primary">App</span></span>
@@ -112,13 +113,13 @@ const Navbar: React.FC = () => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-background border-b"
           >
-            <div className="container mx-auto px-4 py-4">
-              <nav className="flex flex-col space-y-4">
+            <div className="container mx-auto px-4 py-3">
+              <nav className="flex flex-col space-y-3">
                 {navLinks.map((link) => (
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`flex items-center py-2 text-sm font-medium transition-colors ${activeLink(
+                    className={`flex items-center py-1.5 text-sm font-medium transition-colors ${activeLink(
                       link.path
                     )}`}
                   >
@@ -126,7 +127,7 @@ const Navbar: React.FC = () => {
                     {link.label}
                   </Link>
                 ))}
-                <div className="pt-4 flex flex-col space-y-3">
+                <div className="pt-3 flex flex-col space-y-3">
                   {isAuthenticated ? (
                     <>
                       <div className="text-sm text-muted-foreground">
