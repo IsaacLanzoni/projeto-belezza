@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getUserAppointments, Appointment } from '@/utils/scheduleUtils';
 
 type Appointment = {
   id: string;
@@ -86,26 +86,22 @@ const AppointmentsPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Load appointments from sessionStorage
-    const savedAppointments = sessionStorage.getItem('appointments');
-    if (savedAppointments) {
-      setAppointments(JSON.parse(savedAppointments));
-    }
+    setAppointments(getUserAppointments());
   }, []);
 
   const handleCancelAppointment = (appointmentId: string) => {
-    // Update the appointment status to 'canceled'
-    const updatedAppointments = appointments.map(appointment => 
+    const allAppointments = JSON.parse(sessionStorage.getItem('appointments') || '[]');
+    
+    const updatedAllAppointments = allAppointments.map((appointment: Appointment) => 
       appointment.id === appointmentId
         ? { ...appointment, status: 'canceled' as const }
         : appointment
     );
     
-    // Save to sessionStorage
-    sessionStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    setAppointments(updatedAppointments);
+    sessionStorage.setItem('appointments', JSON.stringify(updatedAllAppointments));
     
-    // Close dialog and show toast
+    setAppointments(getUserAppointments());
+    
     setIsDialogOpen(false);
     toast({
       title: "Agendamento cancelado",
