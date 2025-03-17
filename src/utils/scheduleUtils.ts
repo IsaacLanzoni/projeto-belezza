@@ -34,9 +34,9 @@ export interface Appointment {
   professional: any;
   date: string;
   time: string;
-  status: string;
+  status: 'confirmed' | 'canceled' | 'completed'; // Updated to match the expected status types
   createdAt: string;
-  userId: string | null; // Add userId to associate appointments with specific users
+  userId: string | null;
 }
 
 /**
@@ -53,9 +53,9 @@ export const saveAppointment = (date: Date, selectedTimeSlot: string, service: a
     professional,
     date: format(date, 'yyyy-MM-dd'),
     time: selectedTimeSlot,
-    status: 'confirmed',
+    status: 'confirmed' as const, // Use a type assertion to ensure it's one of the allowed types
     createdAt: new Date().toISOString(),
-    userId // Associate the appointment with the current user
+    userId
   };
   
   // Save to session storage (in a real app, this would go to a database)

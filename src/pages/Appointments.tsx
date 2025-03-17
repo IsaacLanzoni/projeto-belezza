@@ -31,24 +31,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getUserAppointments, Appointment } from '@/utils/scheduleUtils';
 
-type Appointment = {
-  id: string;
-  service: {
-    id: string;
-    name: string;
-    price: number;
-    duration: number;
-  };
-  professional: {
-    id: string;
-    name: string;
-  };
-  date: string;
-  time: string;
-  status: 'confirmed' | 'canceled' | 'completed';
-  createdAt: string;
-};
-
 const getStatusProperties = (status: string) => {
   switch (status) {
     case 'confirmed':
@@ -86,13 +68,15 @@ const AppointmentsPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    setAppointments(getUserAppointments());
+    // Load user's appointments and convert them to the expected format
+    const userAppointments = getUserAppointments();
+    setAppointments(userAppointments);
   }, []);
 
   const handleCancelAppointment = (appointmentId: string) => {
     const allAppointments = JSON.parse(sessionStorage.getItem('appointments') || '[]');
     
-    const updatedAllAppointments = allAppointments.map((appointment: Appointment) => 
+    const updatedAllAppointments = allAppointments.map((appointment: any) => 
       appointment.id === appointmentId
         ? { ...appointment, status: 'canceled' as const }
         : appointment
@@ -100,7 +84,9 @@ const AppointmentsPage: React.FC = () => {
     
     sessionStorage.setItem('appointments', JSON.stringify(updatedAllAppointments));
     
-    setAppointments(getUserAppointments());
+    // Refresh the appointments list after cancellation
+    const userAppointments = getUserAppointments();
+    setAppointments(userAppointments);
     
     setIsDialogOpen(false);
     toast({
