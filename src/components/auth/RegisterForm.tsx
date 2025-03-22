@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Mail, Lock, ArrowRight, EyeIcon, EyeOff, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,6 @@ const RegisterForm = () => {
     } = {};
     let isValid = true;
 
-    // Validação de nome
     if (!name) {
       newErrors.name = 'O nome é obrigatório';
       isValid = false;
@@ -37,7 +35,6 @@ const RegisterForm = () => {
       isValid = false;
     }
 
-    // Validação de email
     if (!email) {
       newErrors.email = 'O email é obrigatório';
       isValid = false;
@@ -46,7 +43,6 @@ const RegisterForm = () => {
       isValid = false;
     }
 
-    // Validação de senha
     if (!password) {
       newErrors.password = 'A senha é obrigatória';
       isValid = false;
@@ -151,7 +147,7 @@ const RegisterForm = () => {
         </p>
       </div>
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" variant="auth" disabled={isLoading}>
         {isLoading ? 'Criando conta...' : 'Criar conta'}
         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
       </Button>
