@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -29,7 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getUserAppointments, Appointment } from '@/utils/scheduleUtils';
+import { getUserAppointments, Appointment, mapAppointmentStatus } from '@/utils/scheduleUtils';
 import { supabase } from '@/integrations/supabase/client';
 
 const getStatusProperties = (status: string) => {

@@ -9,12 +9,12 @@ import { CalendarIcon, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 
-// Import new components
+// Import components
 import DateSelector from '@/components/schedule/DateSelector';
 import TimeSlotsGrid from '@/components/schedule/TimeSlotsGrid';
 import AppointmentSummary from '@/components/schedule/AppointmentSummary';
 
-// Import utilities
+// Import utilities (using the new refactored structure)
 import { generateTimeSlots, saveAppointment } from '@/utils/scheduleUtils';
 
 const SchedulePage: React.FC = () => {
