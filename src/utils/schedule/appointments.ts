@@ -191,6 +191,7 @@ export const rescheduleAppointment = async (
     );
 
     // First, get the appointment to verify permissions and get all related data
+    // Use specific hints para evitar ambiguidade nos relacionamentos com a tabela profiles
     const { data: appointmentData, error: fetchError } = await supabase
       .from('appointments')
       .select(`
@@ -206,7 +207,7 @@ export const rescheduleAppointment = async (
           preco,
           duracao_minutos
         ),
-        professionals:profissional_id (
+        professional:profiles!profissional_id (
           id,
           nome,
           telefone
@@ -254,9 +255,9 @@ export const rescheduleAppointment = async (
         duration: appointmentData.services.duracao_minutos
       },
       professional: {
-        id: appointmentData.professionals.id,
-        name: appointmentData.professionals.nome,
-        phone: appointmentData.professionals.telefone
+        id: appointmentData.professional.id,
+        name: appointmentData.professional.nome,
+        phone: appointmentData.professional.telefone
       },
       date: format(newDate, 'yyyy-MM-dd'),
       time: newTimeSlot,
