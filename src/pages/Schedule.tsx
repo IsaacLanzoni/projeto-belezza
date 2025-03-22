@@ -26,6 +26,7 @@ const SchedulePage: React.FC = () => {
   const [confirmStep, setConfirmStep] = useState(false);
   const [service, setService] = useState<any>(null);
   const [professional, setProfessional] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Get selected service and professional from session storage
@@ -47,11 +48,28 @@ const SchedulePage: React.FC = () => {
   }, [navigate, toast]);
 
   useEffect(() => {
-    if (date) {
-      setTimeSlots(generateTimeSlots(date));
-      setSelectedTimeSlot(null); // Reset selected time when date changes
-    }
-  }, [date]);
+    const fetchTimeSlots = async () => {
+      if (date && professional) {
+        setIsLoading(true);
+        try {
+          const slots = await generateTimeSlots(date, professional.id);
+          setTimeSlots(slots);
+          setSelectedTimeSlot(null); // Reset selected time when date changes
+        } catch (error) {
+          console.error('Error fetching time slots:', error);
+          toast({
+            title: "Erro ao buscar horários",
+            description: "Não foi possível obter os horários disponíveis.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchTimeSlots();
+  }, [date, professional, toast]);
 
   const handleTimeSlotSelect = (time: string) => {
     setSelectedTimeSlot(time);
@@ -61,19 +79,35 @@ const SchedulePage: React.FC = () => {
     setConfirmStep(true);
   };
 
-  const handleSchedule = () => {
+  const handleSchedule = async () => {
     if (!date || !selectedTimeSlot || !service || !professional) return;
     
-    // Save appointment and show success toast
-    saveAppointment(date, selectedTimeSlot, service, professional);
-    
-    toast({
-      title: "Agendamento realizado!",
-      description: "Seu horário foi agendado com sucesso.",
-    });
-    
-    // Navigate to appointments history
-    navigate('/appointments');
+    setIsLoading(true);
+    try {
+      // Save appointment and show success toast
+      const appointment = await saveAppointment(date, selectedTimeSlot, service.id, professional.id);
+      
+      if (appointment) {
+        toast({
+          title: "Agendamento realizado!",
+          description: "Seu horário foi agendado com sucesso.",
+        });
+        
+        // Navigate to appointments history
+        navigate('/appointments');
+      } else {
+        throw new Error("Falha ao criar agendamento");
+      }
+    } catch (error) {
+      console.error('Error scheduling appointment:', error);
+      toast({
+        title: "Erro ao agendar",
+        description: "Não foi possível completar o agendamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const canProceed = date && selectedTimeSlot;
@@ -135,6 +169,7 @@ const SchedulePage: React.FC = () => {
                       timeSlots={timeSlots}
                       selectedTimeSlot={selectedTimeSlot}
                       onTimeSlotSelect={handleTimeSlotSelect}
+                      isLoading={isLoading}
                     />
                   </div>
                 ) : (
@@ -159,15 +194,17 @@ const SchedulePage: React.FC = () => {
                 {!confirmStep ? (
                   <Button 
                     onClick={handleConfirm} 
-                    disabled={!canProceed}
+                    disabled={!canProceed || isLoading}
                   >
                     Continuar <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleSchedule}
+                    disabled={isLoading}
                   >
-                    Confirmar Agendamento <CheckCircle className="ml-2 h-4 w-4" />
+                    {isLoading ? 'Processando...' : 'Confirmar Agendamento'} 
+                    {!isLoading && <CheckCircle className="ml-2 h-4 w-4" />}
                   </Button>
                 )}
               </CardFooter>
