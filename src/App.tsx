@@ -11,6 +11,7 @@ import Appointments from "./pages/Appointments";
 import Services from "./pages/Services";
 import Professionals from "./pages/Professionals";
 import Login from "./pages/Login";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/professional-dashboard" element={<ProfessionalDashboard />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

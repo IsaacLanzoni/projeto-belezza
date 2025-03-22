@@ -9,6 +9,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  userType: 'cliente' | 'profissional';
 }
 
 interface AuthContextType {
@@ -16,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, userType?: 'cliente' | 'profissional') => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -85,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: authUser.id,
           name: profile.nome,
           email: authUser.email || '',
+          userType: profile.tipo_usuario as 'cliente' | 'profissional'
         });
       }
     } catch (error) {
@@ -107,7 +109,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data.user) {
         toast.success('Login realizado com sucesso!');
-        navigate('/services');
+        
+        // Fetch user profile to get user type
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tipo_usuario')
+          .eq('id', data.user.id)
+          .single();
+        
+        // Redirect based on user type
+        if (profile?.tipo_usuario === 'profissional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/services');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer login. Tente novamente.');
@@ -117,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, userType: 'cliente' | 'profissional' = 'cliente') => {
     setIsLoading(true);
     
     try {
@@ -127,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             name,
+            userType,
           },
         },
       });
@@ -136,8 +152,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data.user) {
+        // Update the tipo_usuario in profiles table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ tipo_usuario: userType })
+          .eq('id', data.user.id);
+          
+        if (profileError) {
+          console.error('Error updating user type:', profileError);
+        }
+        
         toast.success('Cadastro realizado com sucesso!');
-        navigate('/services');
+        
+        // Redirect based on user type
+        if (userType === 'profissional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/services');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer cadastro. Tente novamente.');
