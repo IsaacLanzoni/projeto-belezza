@@ -9,16 +9,163 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_hora: string
+          id: string
+          profissional_id: string
+          servico_id: string
+          status: Database["public"]["Enums"]["appointment_status"]
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_hora: string
+          id?: string
+          profissional_id: string
+          servico_id: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_hora?: string
+          id?: string
+          profissional_id?: string
+          servico_id?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_servico_id_fkey"
+            columns: ["servico_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          agendamento_id: string
+          created_at: string
+          data_pagamento: string | null
+          id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          valor: number
+        }
+        Insert: {
+          agendamento_id: string
+          created_at?: string
+          data_pagamento?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          valor: number
+        }
+        Update: {
+          agendamento_id?: string
+          created_at?: string
+          data_pagamento?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          id: string
+          nome: string
+          telefone: string | null
+          tipo_usuario: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          id: string
+          nome: string
+          telefone?: string | null
+          tipo_usuario?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          id?: string
+          nome?: string
+          telefone?: string | null
+          tipo_usuario?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          duracao_minutos: number
+          id: string
+          nome: string
+          preco: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          duracao_minutos: number
+          id?: string
+          nome: string
+          preco: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          duracao_minutos?: number
+          id?: string
+          nome?: string
+          preco?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_professional_available_slots: {
+        Args: {
+          professional_id: string
+          date_to_check: string
+          slot_duration_minutes?: number
+        }
+        Returns: {
+          slot_start: string
+          slot_end: string
+          is_available: boolean
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      appointment_status: "pendente" | "confirmado" | "cancelado" | "concluído"
+      payment_status: "pendente" | "aprovado" | "cancelado"
+      user_type: "cliente" | "profissional" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
