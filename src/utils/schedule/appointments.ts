@@ -164,3 +164,108 @@ export const getUserAppointments = async (): Promise<Appointment[]> => {
     return [];
   }
 };
+
+/**
+ * Reschedules an existing appointment to a new date and time
+ */
+export const rescheduleAppointment = async (
+  appointmentId: string,
+  newDate: Date,
+  newTimeSlot: string
+): Promise<Appointment | null> => {
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('User not authenticated');
+      return null;
+    }
+
+    // Format the new date and time for the database
+    const newAppointmentDateTime = new Date(
+      newDate.getFullYear(),
+      newDate.getMonth(),
+      newDate.getDate(),
+      parseInt(newTimeSlot.split(':')[0]),
+      parseInt(newTimeSlot.split(':')[1])
+    );
+
+    // First, get the appointment to verify permissions and get all related data
+    const { data: appointmentData, error: fetchError } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        cliente_id,
+        profissional_id,
+        servico_id,
+        status,
+        services:servico_id (
+          id,
+          nome,
+          descricao,
+          preco,
+          duracao_minutos
+        ),
+        professionals:profissional_id (
+          id,
+          nome,
+          telefone
+        )
+      `)
+      .eq('id', appointmentId)
+      .single();
+
+    if (fetchError || !appointmentData) {
+      console.error('Error fetching appointment to reschedule:', fetchError);
+      return null;
+    }
+
+    // Verify the user is the owner of the appointment
+    if (appointmentData.cliente_id !== user.id) {
+      console.error('User does not have permission to reschedule this appointment');
+      return null;
+    }
+
+    // Update the appointment with the new date and time
+    const { data: updatedAppointment, error: updateError } = await supabase
+      .from('appointments')
+      .update({
+        data_hora: newAppointmentDateTime.toISOString(),
+        // Optionally reset status to 'pendente' if needed
+        status: 'pendente'
+      })
+      .eq('id', appointmentId)
+      .select()
+      .single();
+
+    if (updateError || !updatedAppointment) {
+      console.error('Error updating appointment:', updateError);
+      return null;
+    }
+
+    // Map the updated appointment to our app's format
+    return {
+      id: updatedAppointment.id,
+      service: {
+        id: appointmentData.services.id,
+        name: appointmentData.services.nome,
+        description: appointmentData.services.descricao,
+        price: appointmentData.services.preco,
+        duration: appointmentData.services.duracao_minutos
+      },
+      professional: {
+        id: appointmentData.professionals.id,
+        name: appointmentData.professionals.nome,
+        phone: appointmentData.professionals.telefone
+      },
+      date: format(newDate, 'yyyy-MM-dd'),
+      time: newTimeSlot,
+      status: mapAppointmentStatus(updatedAppointment.status),
+      createdAt: updatedAppointment.created_at,
+      userId: user.id
+    };
+  } catch (error) {
+    console.error('Error rescheduling appointment:', error);
+    return null;
+  }
+};
