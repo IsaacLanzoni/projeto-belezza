@@ -7,9 +7,11 @@ import ProfessionalsHeader from '@/components/professionals/ProfessionalsHeader'
 import ProfessionalsSearch from '@/components/professionals/ProfessionalsSearch';
 import ProfessionalsList from '@/components/professionals/ProfessionalsList';
 import { professionals } from '@/data/professionals';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Professionals: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
 
@@ -38,6 +40,13 @@ const Professionals: React.FC = () => {
   }, [navigate]);
 
   const handleProfessionalSelect = (id: string) => {
+    // Verificar se o usuário está autenticado
+    if (!isAuthenticated) {
+      toast.error('Você precisa estar logado para agendar um atendimento');
+      navigate('/login');
+      return;
+    }
+    
     // Store selected professional in session storage for the next step
     const selectedProfessional = professionals.find(professional => professional.id === id);
     if (selectedProfessional) {
