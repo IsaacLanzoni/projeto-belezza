@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ptBR } from 'date-fns/locale';
 import { format, addDays } from 'date-fns';
 import { Clock, Save, Plus, Trash2 } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
+import { Json } from '@/integrations/supabase/types';
 
 const timeSlots = Array.from({ length: 24 }, (_, hour) => 
   [`${hour.toString().padStart(2, '0')}:00`, `${hour.toString().padStart(2, '0')}:30`]
@@ -45,7 +46,7 @@ interface ScheduleTableRow {
   professional_id: string;
   schedule_type: string;
   date: string | null;
-  schedule_data: any;
+  schedule_data: Json;
   created_at: string;
 }
 
@@ -91,9 +92,9 @@ const AvailabilityManager: React.FC = () => {
       if (weeklyError) throw weeklyError;
       
       if (weeklyData && weeklyData.length > 0) {
-        // Type assertion and parsing of the JSON data
+        // Type assertion with stronger casting for safety
         const scheduleData = weeklyData[0].schedule_data;
-        setWeekSchedule(scheduleData as WeekSchedule);
+        setWeekSchedule(scheduleData as unknown as WeekSchedule);
       }
       
       // Load special dates
@@ -110,7 +111,10 @@ const AvailabilityManager: React.FC = () => {
         
         specialData.forEach((item: ScheduleTableRow) => {
           if (item.date) {
-            specialDatesMap[item.date] = item.schedule_data;
+            specialDatesMap[item.date] = item.schedule_data as unknown as { 
+              enabled: boolean, 
+              timeRanges: TimeRange[] 
+            };
           }
         });
         
@@ -134,18 +138,18 @@ const AvailabilityManager: React.FC = () => {
         return;
       }
       
-      // Save weekly schedule
+      // Save weekly schedule - type casting JSON data
       const { error: weeklyError } = await supabase
         .from('professional_schedule')
         .upsert({
           professional_id: user.id,
           schedule_type: 'weekly',
-          schedule_data: weekSchedule,
+          schedule_data: weekSchedule as unknown as Json,
         }, { onConflict: 'professional_id,schedule_type' });
       
       if (weeklyError) throw weeklyError;
       
-      // Save special dates
+      // Save special dates - type casting JSON data
       for (const [date, schedule] of Object.entries(specialDates)) {
         const { error: specialError } = await supabase
           .from('professional_schedule')
@@ -153,7 +157,7 @@ const AvailabilityManager: React.FC = () => {
             professional_id: user.id,
             schedule_type: 'special',
             date,
-            schedule_data: schedule,
+            schedule_data: schedule as unknown as Json,
           }, { onConflict: 'professional_id,schedule_type,date' });
         
         if (specialError) throw specialError;
