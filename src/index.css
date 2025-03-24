@@ -60,14 +60,21 @@
   }
 }
 
-/* Override visited button styles */
-button[class*="auth"]:visited,
-a[class*="auth"]:visited {
+/* Forçar a aparência correta para botões auth */
+a[class*="auth"], 
+button[class*="auth"] {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
 }
 
-/* This ensures buttons don't retain a visited state visually */
+/* Remover completamente o estado visitado de todos os botões */
+button:visited,
+a[role="button"]:visited {
+  color: inherit !important;
+  background-color: inherit !important;
+}
+
+/* Garantir que botões não mantenham estado de visitado visualmente */
 button, 
 a[role="button"] {
   text-decoration: none !important;

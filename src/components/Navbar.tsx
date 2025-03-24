@@ -17,11 +17,9 @@ const Navbar: React.FC = () => {
   const [userType, setUserType] = useState<'cliente' | 'profissional'>('cliente');
 
   useEffect(() => {
-    // Check user type when authenticated
     const checkUserType = async () => {
       if (isAuthenticated && user) {
         try {
-          // This was incorrectly using fetch instead of supabase client
           const { data, error } = await supabase
             .from('profiles')
             .select('tipo_usuario')
@@ -50,7 +48,6 @@ const Navbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Close mobile menu when changing routes
     setMenuOpen(false);
   }, [location.pathname]);
 
@@ -81,12 +78,10 @@ const Navbar: React.FC = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="font-bold text-lg md:text-xl">Belezza<span className="text-primary">App</span></span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -101,7 +96,6 @@ const Navbar: React.FC = () => {
             ))}
           </nav>
 
-          {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
@@ -128,7 +122,6 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex md:hidden"
@@ -139,7 +132,6 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {menuOpen && isMobile && (
           <motion.div
