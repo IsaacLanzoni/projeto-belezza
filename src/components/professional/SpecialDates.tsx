@@ -7,9 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
-import { timeSlots } from '@/utils/schedule/types';
+import { Plus } from 'lucide-react';
+import TimeRangeSelector from './TimeRangeSelector';
 
 interface SpecialDatesProps {
   selectedDate: Date | undefined;
@@ -122,49 +121,13 @@ const SpecialDates: React.FC<SpecialDatesProps> = ({
           <CardContent>
             <div className="space-y-4">
               {currentDateSchedule?.timeRanges.map((range, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Select 
-                    value={range.start}
-                    onValueChange={(value) => updateTimeRange(index, 'start', value)}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="Início" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map(time => (
-                        <SelectItem key={`start-${time}`} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <span>até</span>
-                  
-                  <Select 
-                    value={range.end}
-                    onValueChange={(value) => updateTimeRange(index, 'end', value)}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="Fim" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map(time => (
-                        <SelectItem key={`end-${time}`} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => removeTimeRange(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <TimeRangeSelector
+                  key={index}
+                  range={range}
+                  index={index}
+                  onUpdate={updateTimeRange}
+                  onRemove={removeTimeRange}
+                />
               ))}
             </div>
             

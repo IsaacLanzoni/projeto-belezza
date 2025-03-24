@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
-import { TimeRange, WeekSchedule, weekdays, timeSlots } from '@/utils/schedule/types';
+import { Plus } from 'lucide-react';
+import { TimeRange, WeekSchedule, weekdays } from '@/utils/schedule/types';
 import { toast } from 'sonner';
+import TimeRangeSelector from './TimeRangeSelector';
 
 interface WeeklyScheduleProps {
   weekSchedule: WeekSchedule;
@@ -91,9 +92,8 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({ weekSchedule, onWeekSch
                     key={index}
                     range={range}
                     index={index}
-                    dayKey={selectedDay}
-                    onUpdate={updateTimeRange}
-                    onRemove={removeTimeRange}
+                    onUpdate={(index, field, value) => updateTimeRange(selectedDay, index, field, value)}
+                    onRemove={(index) => removeTimeRange(selectedDay, index)}
                   />
                 ))}
               </div>
@@ -109,68 +109,6 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({ weekSchedule, onWeekSch
           </Card>
         )}
       </div>
-    </div>
-  );
-};
-
-interface TimeRangeSelectorProps {
-  range: TimeRange;
-  index: number;
-  dayKey: string;
-  onUpdate: (dayKey: string, index: number, field: 'start' | 'end', value: string) => void;
-  onRemove: (dayKey: string, index: number) => void;
-}
-
-const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({ 
-  range, 
-  index, 
-  dayKey, 
-  onUpdate, 
-  onRemove 
-}) => {
-  return (
-    <div className="flex items-center space-x-2">
-      <Select 
-        value={range.start}
-        onValueChange={(value) => onUpdate(dayKey, index, 'start', value)}
-      >
-        <SelectTrigger className="w-[120px]">
-          <SelectValue placeholder="Início" />
-        </SelectTrigger>
-        <SelectContent>
-          {timeSlots.map(time => (
-            <SelectItem key={`start-${time}`} value={time}>
-              {time}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      <span>até</span>
-      
-      <Select 
-        value={range.end}
-        onValueChange={(value) => onUpdate(dayKey, index, 'end', value)}
-      >
-        <SelectTrigger className="w-[120px]">
-          <SelectValue placeholder="Fim" />
-        </SelectTrigger>
-        <SelectContent>
-          {timeSlots.map(time => (
-            <SelectItem key={`end-${time}`} value={time}>
-              {time}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      <Button 
-        variant="ghost" 
-        size="icon"
-        onClick={() => onRemove(dayKey, index)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
     </div>
   );
 };
