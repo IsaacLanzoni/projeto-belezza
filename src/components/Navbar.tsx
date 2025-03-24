@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Calendar, UserCircle, Home, Scissors, Users, Clock, LogOut, LayoutDashboard } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -21,7 +21,13 @@ const Navbar: React.FC = () => {
     const checkUserType = async () => {
       if (isAuthenticated && user) {
         try {
-          const { data, error } = await fetch('profiles', user.id);
+          // This was incorrectly using fetch instead of supabase client
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('tipo_usuario')
+            .eq('id', user.id)
+            .single();
+            
           if (!error && data?.tipo_usuario) {
             setUserType(data.tipo_usuario as 'cliente' | 'profissional');
           }
