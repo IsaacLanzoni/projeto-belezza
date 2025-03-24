@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +37,15 @@ interface DaySchedule {
 }
 
 type WeekSchedule = Record<string, DaySchedule>;
+
+interface ProfessionalSchedule {
+  id?: string;
+  professional_id: string;
+  schedule_type: 'weekly' | 'special';
+  date?: string;
+  schedule_data: WeekSchedule | DaySchedule;
+  created_at?: string;
+}
 
 const initialWeekSchedule: WeekSchedule = {
   '0': { enabled: false, timeRanges: [{ start: '09:00', end: '17:00' }] },
@@ -95,8 +103,10 @@ const AvailabilityManager: React.FC = () => {
       
       if (specialData && specialData.length > 0) {
         const specialDatesMap: Record<string, { enabled: boolean, timeRanges: TimeRange[] }> = {};
-        specialData.forEach(item => {
-          specialDatesMap[item.date] = item.schedule_data;
+        specialData.forEach((item: ProfessionalSchedule) => {
+          if (item.date) {
+            specialDatesMap[item.date] = item.schedule_data as { enabled: boolean, timeRanges: TimeRange[] };
+          }
         });
         setSpecialDates(specialDatesMap);
       }
