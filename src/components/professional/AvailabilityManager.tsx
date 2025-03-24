@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,13 +39,14 @@ interface DaySchedule {
 
 type WeekSchedule = Record<string, DaySchedule>;
 
-interface ProfessionalSchedule {
-  id?: string;
+// Define the database table structure from Supabase
+interface ScheduleTableRow {
+  id: string;
   professional_id: string;
-  schedule_type: 'weekly' | 'special';
-  date?: string;
-  schedule_data: WeekSchedule | DaySchedule;
-  created_at?: string;
+  schedule_type: string;
+  date: string | null;
+  schedule_data: any;
+  created_at: string;
 }
 
 const initialWeekSchedule: WeekSchedule = {
@@ -89,7 +91,9 @@ const AvailabilityManager: React.FC = () => {
       if (weeklyError) throw weeklyError;
       
       if (weeklyData && weeklyData.length > 0) {
-        setWeekSchedule(weeklyData[0].schedule_data as WeekSchedule);
+        // Type assertion and parsing of the JSON data
+        const scheduleData = weeklyData[0].schedule_data;
+        setWeekSchedule(scheduleData as WeekSchedule);
       }
       
       // Load special dates
@@ -103,11 +107,13 @@ const AvailabilityManager: React.FC = () => {
       
       if (specialData && specialData.length > 0) {
         const specialDatesMap: Record<string, { enabled: boolean, timeRanges: TimeRange[] }> = {};
-        specialData.forEach((item: ProfessionalSchedule) => {
+        
+        specialData.forEach((item: ScheduleTableRow) => {
           if (item.date) {
-            specialDatesMap[item.date] = item.schedule_data as { enabled: boolean, timeRanges: TimeRange[] };
+            specialDatesMap[item.date] = item.schedule_data;
           }
         });
+        
         setSpecialDates(specialDatesMap);
       }
     } catch (error) {
