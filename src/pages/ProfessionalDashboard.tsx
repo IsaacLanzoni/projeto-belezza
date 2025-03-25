@@ -1,15 +1,25 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, Users, Scissors } from 'lucide-react';
 import Layout from '@/components/Layout';
 import AvailabilityManager from '@/components/professional/AvailabilityManager';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const ProfessionalDashboard: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Check if the user is a professional, if not redirect
+    if (isAuthenticated && user?.userType !== 'profissional') {
+      toast.error('Área restrita para profissionais');
+      navigate('/services');
+    }
+  }, [isAuthenticated, user, navigate]);
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
