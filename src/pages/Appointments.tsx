@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,24 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-type Appointment = {
-  id: string;
-  service: {
-    id: string;
-    name: string;
-    price: number;
-    duration: number;
-  };
-  professional: {
-    id: string;
-    name: string;
-  };
-  date: string;
-  time: string;
-  status: 'confirmed' | 'canceled' | 'completed';
-  createdAt: string;
-};
+import { getUserAppointments, Appointment } from '@/utils/scheduleUtils';
 
 const getStatusProperties = (status: string) => {
   switch (status) {
@@ -86,26 +68,26 @@ const AppointmentsPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Load appointments from sessionStorage
-    const savedAppointments = sessionStorage.getItem('appointments');
-    if (savedAppointments) {
-      setAppointments(JSON.parse(savedAppointments));
-    }
+    // Load user's appointments and convert them to the expected format
+    const userAppointments = getUserAppointments();
+    setAppointments(userAppointments);
   }, []);
 
   const handleCancelAppointment = (appointmentId: string) => {
-    // Update the appointment status to 'canceled'
-    const updatedAppointments = appointments.map(appointment => 
+    const allAppointments = JSON.parse(sessionStorage.getItem('appointments') || '[]');
+    
+    const updatedAllAppointments = allAppointments.map((appointment: any) => 
       appointment.id === appointmentId
         ? { ...appointment, status: 'canceled' as const }
         : appointment
     );
     
-    // Save to sessionStorage
-    sessionStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    setAppointments(updatedAppointments);
+    sessionStorage.setItem('appointments', JSON.stringify(updatedAllAppointments));
     
-    // Close dialog and show toast
+    // Refresh the appointments list after cancellation
+    const userAppointments = getUserAppointments();
+    setAppointments(userAppointments);
+    
     setIsDialogOpen(false);
     toast({
       title: "Agendamento cancelado",

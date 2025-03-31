@@ -1,5 +1,6 @@
 
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Generates mock time slots for a selected date
@@ -33,22 +34,28 @@ export interface Appointment {
   professional: any;
   date: string;
   time: string;
-  status: string;
+  status: 'confirmed' | 'canceled' | 'completed'; // Updated to match the expected status types
   createdAt: string;
+  userId: string | null;
 }
 
 /**
  * Creates and saves an appointment to session storage
  */
 export const saveAppointment = (date: Date, selectedTimeSlot: string, service: any, professional: any): Appointment => {
+  // Get current user ID from localStorage
+  const currentUser = localStorage.getItem('user');
+  const userId = currentUser ? JSON.parse(currentUser).id : null;
+  
   const appointment = {
     id: `appt-${Date.now()}`,
     service,
     professional,
     date: format(date, 'yyyy-MM-dd'),
     time: selectedTimeSlot,
-    status: 'confirmed',
-    createdAt: new Date().toISOString()
+    status: 'confirmed' as const, // Use a type assertion to ensure it's one of the allowed types
+    createdAt: new Date().toISOString(),
+    userId
   };
   
   // Save to session storage (in a real app, this would go to a database)
@@ -57,4 +64,19 @@ export const saveAppointment = (date: Date, selectedTimeSlot: string, service: a
   sessionStorage.setItem('appointments', JSON.stringify(updatedAppointments));
   
   return appointment;
+};
+
+/**
+ * Gets appointments for the current user
+ */
+export const getUserAppointments = (): Appointment[] => {
+  // Get current user ID from localStorage
+  const currentUser = localStorage.getItem('user');
+  const userId = currentUser ? JSON.parse(currentUser).id : null;
+  
+  if (!userId) return [];
+  
+  // Get all appointments and filter by userId
+  const allAppointments = JSON.parse(sessionStorage.getItem('appointments') || '[]');
+  return allAppointments.filter((appointment: Appointment) => appointment.userId === userId);
 };
