@@ -4,7 +4,6 @@ import { User, Mail, Lock, ArrowRight, EyeIcon, EyeOff, CheckCircle2 } from 'luc
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,7 +14,6 @@ const RegisterForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState<'cliente' | 'profissional'>('cliente');
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
@@ -30,6 +28,7 @@ const RegisterForm = () => {
     } = {};
     let isValid = true;
 
+    // Validação de nome
     if (!name) {
       newErrors.name = 'O nome é obrigatório';
       isValid = false;
@@ -38,6 +37,7 @@ const RegisterForm = () => {
       isValid = false;
     }
 
+    // Validação de email
     if (!email) {
       newErrors.email = 'O email é obrigatório';
       isValid = false;
@@ -46,6 +46,7 @@ const RegisterForm = () => {
       isValid = false;
     }
 
+    // Validação de senha
     if (!password) {
       newErrors.password = 'A senha é obrigatória';
       isValid = false;
@@ -67,10 +68,10 @@ const RegisterForm = () => {
     }
     
     try {
-      await register(name, email, password, userType);
+      await register(name, email, password);
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      toast.error('Ocorreu um erro no cadastro. Tente novamente.');
+      toast.error('Erro ao criar conta. Por favor, tente novamente.');
     }
   };
 
@@ -98,11 +99,11 @@ const RegisterForm = () => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="register-email">Email</Label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            id="email"
+            id="register-email"
             type="email"
             placeholder="seu@email.com"
             className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
@@ -117,11 +118,11 @@ const RegisterForm = () => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <Label htmlFor="register-password">Senha</Label>
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            id="password"
+            id="register-password"
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             className={`pl-10 ${errors.password ? 'border-red-500' : ''}`}
@@ -143,32 +144,14 @@ const RegisterForm = () => {
         )}
       </div>
       
-      <div className="space-y-2">
-        <Label>Tipo de conta</Label>
-        <RadioGroup 
-          value={userType} 
-          onValueChange={(value) => setUserType(value as 'cliente' | 'profissional')}
-          className="flex flex-col space-y-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="cliente" id="cliente" />
-            <Label htmlFor="cliente" className="cursor-pointer">Cliente</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="profissional" id="profissional" />
-            <Label htmlFor="profissional" className="cursor-pointer">Profissional</Label>
-          </div>
-        </RadioGroup>
-      </div>
-      
-      <div className="text-sm text-muted-foreground">
-        <p className="flex items-start">
-          <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-primary" />
-          Ao criar sua conta, você concorda com nossos termos de uso e política de privacidade.
+      <div className="text-sm text-muted-foreground flex items-start gap-2">
+        <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+        <p>
+          Ao criar uma conta, você concorda com nossos <Link to="#" className="text-primary hover:underline">Termos de Serviço</Link> e <Link to="#" className="text-primary hover:underline">Política de Privacidade</Link>.
         </p>
       </div>
       
-      <Button type="submit" className="w-full" variant="auth" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Criando conta...' : 'Criar conta'}
         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
       </Button>

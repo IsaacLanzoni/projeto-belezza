@@ -30,8 +30,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getUserAppointments, Appointment, mapAppointmentStatus } from '@/utils/scheduleUtils';
-import { supabase } from '@/integrations/supabase/client';
+
+type Appointment = {
+  id: string;
+  service: {
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+  };
+  professional: {
+    id: string;
+    name: string;
+  };
+  date: string;
+  time: string;
+  status: 'confirmed' | 'canceled' | 'completed';
+  createdAt: string;
+};
 
 const getStatusProperties = (status: string) => {
   switch (status) {
@@ -68,61 +84,33 @@ const AppointmentsPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadAppointments = async () => {
-      try {
-        setIsLoading(true);
-        const userAppointments = await getUserAppointments();
-        setAppointments(userAppointments);
-      } catch (error) {
-        console.error('Error loading appointments:', error);
-        toast({
-          title: "Erro ao carregar agendamentos",
-          description: "Não foi possível carregar seus agendamentos. Tente novamente mais tarde.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadAppointments();
-  }, [toast]);
-
-  const handleCancelAppointment = async (appointmentId: string) => {
-    try {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'cancelado' })
-        .eq('id', appointmentId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setAppointments(prevAppointments => 
-        prevAppointments.map(appointment => 
-          appointment.id === appointmentId
-            ? { ...appointment, status: 'canceled' }
-            : appointment
-        )
-      );
-      
-      setIsDialogOpen(false);
-      toast({
-        title: "Agendamento cancelado",
-        description: "Seu agendamento foi cancelado com sucesso.",
-      });
-    } catch (error) {
-      console.error('Error canceling appointment:', error);
-      toast({
-        title: "Erro ao cancelar agendamento",
-        description: "Não foi possível cancelar seu agendamento. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
+    // Load appointments from sessionStorage
+    const savedAppointments = sessionStorage.getItem('appointments');
+    if (savedAppointments) {
+      setAppointments(JSON.parse(savedAppointments));
     }
+  }, []);
+
+  const handleCancelAppointment = (appointmentId: string) => {
+    // Update the appointment status to 'canceled'
+    const updatedAppointments = appointments.map(appointment => 
+      appointment.id === appointmentId
+        ? { ...appointment, status: 'canceled' as const }
+        : appointment
+    );
+    
+    // Save to sessionStorage
+    sessionStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    setAppointments(updatedAppointments);
+    
+    // Close dialog and show toast
+    setIsDialogOpen(false);
+    toast({
+      title: "Agendamento cancelado",
+      description: "Seu agendamento foi cancelado com sucesso.",
+    });
   };
 
   const handleNewAppointment = () => {

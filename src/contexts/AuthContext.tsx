@@ -2,14 +2,11 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
   id: string;
   name: string;
   email: string;
-  userType: 'cliente' | 'profissional';
 }
 
 interface AuthContextType {
@@ -17,8 +14,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, userType?: 'cliente' | 'profissional') => Promise<void>;
-  logout: () => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,171 +26,130 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if there's an active session
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error checking session:', error);
-          return;
-        }
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user);
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-
-    // Setup auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          await fetchUserProfile(session.user);
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Verificar se o usuário já está logado (localStorage)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setIsLoading(false);
   }, []);
 
-  const fetchUserProfile = async (authUser: SupabaseUser) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('nome, tipo_usuario')
-        .eq('id', authUser.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return;
-      }
-
-      if (profile) {
-        setUser({
-          id: authUser.id,
-          name: profile.nome,
-          email: authUser.email || '',
-          userType: profile.tipo_usuario as 'cliente' | 'profissional'
-        });
-      }
-    } catch (error) {
-      console.error('Profile fetch error:', error);
+  // Função para simular verificação de email existente
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    // Simulação de consulta ao banco de dados
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Buscar todos os usuários registrados no localStorage
+    const registeredUsers = localStorage.getItem('registeredUsers');
+    if (registeredUsers) {
+      const users = JSON.parse(registeredUsers) as { email: string }[];
+      return users.some(user => user.email.toLowerCase() === email.toLowerCase());
     }
+    
+    return false;
   };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      // Simular verificação de credenciais
+      // Em uma aplicação real, isso seria uma chamada de API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (error) {
-        throw error;
-      }
-      
-      if (data.user) {
-        toast.success('Login realizado com sucesso!');
+      // Verificação simulada - em uma aplicação real você verificaria com backend
+      if (email && password) {
+        // Verificar se o usuário está registrado
+        const registeredUsers = localStorage.getItem('registeredUsers');
+        let userExists = false;
         
-        // Fetch user profile to get user type
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('tipo_usuario')
-          .eq('id', data.user.id)
-          .single();
-        
-        // Redirect based on user type
-        if (profile?.tipo_usuario === 'profissional') {
-          navigate('/professional-dashboard');
-        } else {
-          navigate('/services');
+        if (registeredUsers) {
+          const users = JSON.parse(registeredUsers) as Array<{email: string, name: string}>;
+          const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+          userExists = !!foundUser;
+          
+          if (foundUser) {
+            const user = {
+              id: Math.random().toString(36).substring(2),
+              name: foundUser.name,
+              email: foundUser.email
+            };
+            
+            setUser(user);
+            localStorage.setItem('user', JSON.stringify(user));
+            toast.success('Login realizado com sucesso!');
+            navigate('/services');
+            return;
+          }
         }
+        
+        if (!userExists) {
+          toast.error('Usuário não encontrado ou senha incorreta');
+        }
+      } else {
+        toast.error('Credenciais inválidas');
       }
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login. Tente novamente.');
+    } catch (error) {
+      toast.error('Erro ao fazer login. Tente novamente.');
       console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string, userType: 'cliente' | 'profissional' = 'cliente') => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            userType,
-          },
-        },
-      });
+      // Verificar se o email já existe
+      const emailExists = await checkEmailExists(email);
       
-      if (error) {
-        throw error;
+      if (emailExists) {
+        toast.error('Este email já está cadastrado. Por favor, use outro email ou faça login.');
+        setIsLoading(false);
+        return;
       }
       
-      if (data.user) {
-        // Update the tipo_usuario in profiles table
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ tipo_usuario: userType })
-          .eq('id', data.user.id);
-          
-        if (profileError) {
-          console.error('Error updating user type:', profileError);
-        }
+      // Simular registro de usuário
+      // Em uma aplicação real, isso seria uma chamada de API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulação de registro - em uma aplicação real você enviaria para backend
+      if (name && email && password) {
+        // Guardar usuário registrado para simulação
+        const registeredUsers = localStorage.getItem('registeredUsers');
+        const users = registeredUsers ? JSON.parse(registeredUsers) : [];
+        users.push({ name, email });
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
         
         toast.success('Cadastro realizado com sucesso!');
         
-        // Redirect based on user type
-        if (userType === 'profissional') {
-          navigate('/professional-dashboard');
-        } else {
-          navigate('/services');
-        }
+        // Automaticamente fazer login após o registro
+        const user = {
+          id: Math.random().toString(36).substring(2),
+          name,
+          email
+        };
+        
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+        navigate('/services');
+      } else {
+        toast.error('Preencha todos os campos');
       }
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer cadastro. Tente novamente.');
+    } catch (error) {
+      toast.error('Erro ao fazer cadastro. Tente novamente.');
       console.error('Register error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-      
-      setUser(null);
-      toast.success('Logout realizado com sucesso!');
-      navigate('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer logout. Tente novamente.');
-      console.error('Logout error:', error);
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    toast.success('Logout realizado com sucesso!');
+    navigate('/');
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight, EyeIcon, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const LoginForm = () => {
     } = {};
     let isValid = true;
 
+    // Validação de email
     if (!email) {
       newErrors.email = 'O email é obrigatório';
       isValid = false;
@@ -32,6 +34,7 @@ const LoginForm = () => {
       isValid = false;
     }
 
+    // Validação de senha
     if (!password) {
       newErrors.password = 'A senha é obrigatória';
       isValid = false;
@@ -115,7 +118,7 @@ const LoginForm = () => {
         )}
       </div>
       
-      <Button type="submit" className="w-full" variant="auth" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Entrando...' : 'Entrar'}
         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
       </Button>
