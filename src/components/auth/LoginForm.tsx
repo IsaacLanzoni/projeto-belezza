@@ -115,7 +115,7 @@ const LoginForm = () => {
         )}
       </div>
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" variant="auth" disabled={isLoading}>
         {isLoading ? 'Entrando...' : 'Entrar'}
         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
       </Button>

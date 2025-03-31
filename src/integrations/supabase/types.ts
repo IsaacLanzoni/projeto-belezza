@@ -96,33 +96,6 @@ export type Database = {
           },
         ]
       }
-      professional_schedule: {
-        Row: {
-          created_at: string
-          date: string | null
-          id: string
-          professional_id: string
-          schedule_data: Json
-          schedule_type: string
-        }
-        Insert: {
-          created_at?: string
-          date?: string | null
-          id?: string
-          professional_id: string
-          schedule_data: Json
-          schedule_type: string
-        }
-        Update: {
-          created_at?: string
-          date?: string | null
-          id?: string
-          professional_id?: string
-          schedule_data?: Json
-          schedule_type?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           id: string

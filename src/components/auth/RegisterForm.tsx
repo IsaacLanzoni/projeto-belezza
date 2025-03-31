@@ -150,19 +150,13 @@ const RegisterForm = () => {
           onValueChange={(value) => setUserType(value as 'cliente' | 'profissional')}
           className="flex flex-col space-y-2"
         >
-          <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50">
+          <div className="flex items-center space-x-2">
             <RadioGroupItem value="cliente" id="cliente" />
-            <div className="flex-1">
-              <Label htmlFor="cliente" className="cursor-pointer font-medium">Cliente</Label>
-              <p className="text-sm text-muted-foreground">Quero marcar horários com profissionais</p>
-            </div>
+            <Label htmlFor="cliente" className="cursor-pointer">Cliente</Label>
           </div>
-          <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50">
+          <div className="flex items-center space-x-2">
             <RadioGroupItem value="profissional" id="profissional" />
-            <div className="flex-1">
-              <Label htmlFor="profissional" className="cursor-pointer font-medium">Profissional</Label>
-              <p className="text-sm text-muted-foreground">Quero oferecer meus serviços e gerenciar horários</p>
-            </div>
+            <Label htmlFor="profissional" className="cursor-pointer">Profissional</Label>
           </div>
         </RadioGroup>
       </div>
@@ -174,7 +168,7 @@ const RegisterForm = () => {
         </p>
       </div>
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full" variant="auth" disabled={isLoading}>
         {isLoading ? 'Criando conta...' : 'Criar conta'}
         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
       </Button>

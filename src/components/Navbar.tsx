@@ -14,6 +14,25 @@ const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userType, setUserType] = useState<'cliente' | 'profissional'>('cliente');
+
+  useEffect(() => {
+    // Check user type when authenticated
+    const checkUserType = async () => {
+      if (isAuthenticated && user) {
+        try {
+          const { data, error } = await fetch('profiles', user.id);
+          if (!error && data?.tipo_usuario) {
+            setUserType(data.tipo_usuario as 'cliente' | 'profissional');
+          }
+        } catch (error) {
+          console.error('Error fetching user type:', error);
+        }
+      }
+    };
+    
+    checkUserType();
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +44,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Close mobile menu when changing routes
     setMenuOpen(false);
   }, [location.pathname]);
 
@@ -32,7 +52,7 @@ const Navbar: React.FC = () => {
     { path: '/', label: 'Início', icon: <Home className="h-4 w-4 mr-2" /> },
     { path: '/services', label: 'Serviços', icon: <Scissors className="h-4 w-4 mr-2" /> },
     { path: '/professionals', label: 'Profissionais', icon: <Users className="h-4 w-4 mr-2" /> },
-    { path: '/client-dashboard', label: 'Meu Painel', icon: <Calendar className="h-4 w-4 mr-2" /> },
+    { path: '/appointments', label: 'Meus Agendamentos', icon: <Calendar className="h-4 w-4 mr-2" /> },
   ];
 
   const professionalNavLinks = [
@@ -40,7 +60,7 @@ const Navbar: React.FC = () => {
     { path: '/professional-dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4 mr-2" /> },
   ];
 
-  const navLinks = user?.userType === 'profissional' ? professionalNavLinks : clientNavLinks;
+  const navLinks = userType === 'profissional' ? professionalNavLinks : clientNavLinks;
 
   const activeLink = (path: string) => {
     return location.pathname === path ? 'text-primary' : 'text-muted-foreground hover:text-foreground';
@@ -55,10 +75,12 @@ const Navbar: React.FC = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="font-bold text-lg md:text-xl">Belezza<span className="text-primary">App</span></span>
           </Link>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -73,6 +95,7 @@ const Navbar: React.FC = () => {
             ))}
           </nav>
 
+          {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
@@ -90,7 +113,7 @@ const Navbar: React.FC = () => {
                 </Link>
               </Button>
             )}
-            {user?.userType === 'cliente' && (
+            {userType === 'cliente' && (
               <Button size="sm" asChild>
                 <Link to="/services">
                   <Calendar className="h-4 w-4 mr-2" /> Agendar
@@ -99,6 +122,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex md:hidden"
@@ -109,6 +133,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {menuOpen && isMobile && (
           <motion.div
@@ -148,7 +173,7 @@ const Navbar: React.FC = () => {
                       </Link>
                     </Button>
                   )}
-                  {user?.userType === 'cliente' && (
+                  {userType === 'cliente' && (
                     <Button size="sm" className="justify-start" asChild>
                       <Link to="/services">
                         <Calendar className="h-4 w-4 mr-2" /> Agendar
